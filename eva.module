@@ -10,7 +10,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Utility\Token;
-use Drupal\Core\modules\field\field;
 
 /**
  * Implements hook_entity_extra_field_info() to add the view fields to relevant entities
@@ -174,6 +173,8 @@ function _eva_reset() {
 
 /**
  * Clear the field cache when view cache clears
+ * this is intended to fire when a View is saved
+ * hopefully it won't kick off an endless cache clearing loop
  */
 function eva_views_invalidate_cache() {
   // see https://www.drupal.org/node/2281897
