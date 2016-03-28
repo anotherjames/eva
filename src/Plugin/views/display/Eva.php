@@ -10,6 +10,7 @@ namespace Drupal\eva\Plugin\views\display;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
 
 /**
  * The plugin that handles an EVA display in views.
@@ -97,12 +98,6 @@ class Eva extends DisplayPluginBase {
       'title' => t('Show title'),
       'value' => $this->getOption('show_title') ? t('Yes') : t('No'),
     );
-
-    $options['exposed_form_as_field'] = array(
-      'category' => 'entity_view',
-      'title' => t('Exposed Form as Field'),
-      'value' => $this->getOption('exposed_form_as_field') ? t('Yes') : t('No'),
-    );
   }
 
   /**
@@ -117,7 +112,8 @@ class Eva extends DisplayPluginBase {
     switch ($form_state->get('section')) {
       case 'entity_type':
         foreach ($entity_info as $type => $info) {
-          if ($this->isRenderableEntity($type, $info)) {
+          // is this a content/front-facing entity?
+          if ($info instanceof \Drupal\Core\Entity\ContentEntityType) {
             $entity_names[$type] = $info->get('label');
           }
         }
@@ -188,14 +184,6 @@ class Eva extends DisplayPluginBase {
           '#default_value' => $this->getOption('show_title'),
         );
         break;
-      case 'exposed_form_as_field':
-        $form['#title'] .= t('Exposed Form as Field');
-        $form['exposed_form_as_field'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Split off Exposed Form as Separate Field'),
-          '#default_value' => $this->getOption('exposed_form_as_field'),
-          '#description' => t('Check this box to have a separate field for this view\'s exposed form on the "Manage Display" tab'),
-        );
     }
   }
 
@@ -247,9 +235,6 @@ class Eva extends DisplayPluginBase {
       case 'show_title':
         $this->setOption('show_title', $form_state->getValue('show_title'));
         break;
-      case 'exposed_form_as_field':
-        $this->setOption('exposed_form_as_field', $form_state->getValue('exposed_form_as_field'));
-        break;
     }
   }
 
@@ -269,7 +254,7 @@ class Eva extends DisplayPluginBase {
           $new_args = array();
           // We have to be careful to only replace arguments that have tokens.
           foreach ($token_values as $key => $value) {
-            $new_args[$key] = $value;
+            $new_args[Html::escape($key)] = Html::escape($value);
           }
   
           $this->view->args = $new_args;
@@ -303,11 +288,6 @@ class Eva extends DisplayPluginBase {
     if (!empty($this->view->result) || $this->getOption('empty') || !empty($this->view->style_plugin->definition['even empty'])) {
       return $element;
     }
-  }
-
-  private function isRenderableEntity($type, $entity_info) {
-    // return !empty($entity_info['render_controller_class']);
-    return ($entity_info instanceof \Drupal\Core\Entity\ContentEntityType);
   }
 }
 
