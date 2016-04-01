@@ -184,9 +184,11 @@ function eva_views_invalidate_cache() {
  * templating preprocessing
  * figure out the title and whether there's an exposed form
  */
-function template_preprocess_eva_display_entity_view(&$vars) {
-  $view = $vars['view'];
+function template_preprocess_eva_display_entity_view(&$variables) {
+  $view = $variables['view'];
   $display = $view->display_handler;
-  $vars['title'] = $display->getOption('show_title') ? Xss::filterAdmin($view->getTitle()) : '';
-  $vars['exposed_form_as_field'] = $display->getOption('exposed_form_as_field');
+  $variables['title'] = $display->getOption('show_title') ? Xss::filterAdmin($view->getTitle()) : '';
+  $variables['exposed_form_as_field'] = $display->getOption('exposed_form_as_field');
+  // inject the dom ID since this isn't done automatically
+  $variables['dom_id'] = $view->dom_id;
 }
