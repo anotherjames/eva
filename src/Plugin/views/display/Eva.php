@@ -146,7 +146,7 @@ class Eva extends DisplayPluginBase {
         $form['#title'] .= $this->t('Arguments');
         $default = $this->getOption('argument_mode');
         $options = array(
-          'none' => $this->t("No special handling"),
+          'None' => $this->t("No special handling"),
           'id' => $this->t("Use the ID of the entity the view is attached to"),
           'token' => $this->t("Use tokens from the entity the view is attached to"),
         );
@@ -189,8 +189,12 @@ class Eva extends DisplayPluginBase {
   }
 
   public function validateOptionsForm(&$form, FormStateInterface $form_state) {
-    if (empty($form_state->getValue('entity_type'))) {
-      $form_state->setError($form['entity_type'], $this->t('Must select an entity'));
+    switch ($form_state->get('section')) {
+      case 'entity_type':
+        if (empty($form_state->getValue('entity_type'))) {
+          $form_state->setError($form['entity_type'], $this->t('Must select an entity'));
+        }
+        break;
     }
   }
 
@@ -229,7 +233,7 @@ class Eva extends DisplayPluginBase {
         break;
       case 'arguments':
         $this->setOption('argument_mode', $form_state->getValue('argument_mode'));
-        if ($form_state['values']['argument_mode'] == 'token') {
+        if ($form_state->getValue('argument_mode') == 'token') {
           $this->setOption('default_argument', $form_state->getValue('default_argument'));
         }
         else {
