@@ -107,11 +107,10 @@ function eva_entity_view_alter(array &$build, EntityInterface $entity, EntityVie
           $view->current_entity = $entity;
 
           // exposed form
-          if (isset($fields[$longname . '_form']) && $fields[$longname . '_form']['visible']) {
+          if ($info['uses exposed']) {
             $view->initHandlers();
             $exposed_form = $view->display_handler->getPlugin('exposed_form');
-
-            $build[$longname . '_form'] = $exposed_form->renderExposedForm($block = TRUE);
+            $build[$longname . '_form'] = $exposed_form->renderExposedForm(TRUE);
           }
 
           $element = $view->executeDisplay($info['display']);

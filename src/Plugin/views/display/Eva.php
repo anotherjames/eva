@@ -76,27 +76,27 @@ class Eva extends DisplayPluginBase {
 
     $options['entity_type'] = array(
       'category' => 'entity_view',
-      'title' => t('Entity type'),
-      'value' => empty($type_name) ? t('None') : $type_name,
+      'title' => $this->t('Entity type'),
+      'value' => empty($type_name) ? $this->t('None') : $type_name,
     );
 
     $options['bundles'] = array(
       'category' => 'entity_view',
-      'title' => t('Bundles'),
-      'value' => empty($bundle_names) ? t('All') : implode(', ', $bundle_names),
+      'title' => $this->t('Bundles'),
+      'value' => empty($bundle_names) ? $this->t('All') : implode(', ', $bundle_names),
     );
 
     $argument_mode = $this->getOption('argument_mode');
     $options['arguments'] = array(
       'category' => 'entity_view',
-      'title' => t('Arguments'),
-      'value' => empty($argument_mode) ? t('None') : SafeMarkup::checkPlain($argument_mode),
+      'title' => $this->t('Arguments'),
+      'value' => empty($argument_mode) ? $this->t('None') : SafeMarkup::checkPlain($argument_mode),
     );
 
     $options['show_title'] = array(
       'category' => 'entity_view',
-      'title' => t('Show title'),
-      'value' => $this->getOption('show_title') ? t('Yes') : t('No'),
+      'title' => $this->t('Show title'),
+      'value' => $this->getOption('show_title') ? $this->t('Yes') : $this->t('No'),
     );
   }
 
@@ -122,7 +122,8 @@ class Eva extends DisplayPluginBase {
         $form['entity_type'] = array(
           '#type' => 'radios',
           '#required' => TRUE,
-          '#title' => t("Attach this display to the following entity type"),
+          '#validated' => TRUE,
+          '#title' => $this->t('Attach this display to the following entity type'),
           '#options' => $entity_names,
           '#default_value' => $this->getOption('entity_type'),
         );
@@ -132,34 +133,34 @@ class Eva extends DisplayPluginBase {
         foreach (\Drupal::entityManager()->getBundleInfo($entity_type) as $bundle => $info) {
           $options[$bundle] = $info['label'];
         }
-        $form['#title'] .= t('Bundles');
+        $form['#title'] .= $this->t('Bundles');
         $form['bundles'] = array(
           '#type' => 'checkboxes',
-          '#title' => t("Attach this display to the following bundles.  If no bundles are selected, the display will be attached to all."),
+          '#title' => $this->t('Attach this display to the following bundles.  If no bundles are selected, the display will be attached to all.'),
           '#options' => $options,
           '#default_value' => $this->getOption('bundles'),
         );
         break;
 
       case 'arguments':
-        $form['#title'] .= t('Arguments');
+        $form['#title'] .= $this->t('Arguments');
         $default = $this->getOption('argument_mode');
         $options = array(
-          'none' => t("No special handling"),
-          'id' => t("Use the ID of the entity the view is attached to"),
-          'token' => t("Use tokens from the entity the view is attached to"),
+          'none' => $this->t("No special handling"),
+          'id' => $this->t("Use the ID of the entity the view is attached to"),
+          'token' => $this->t("Use tokens from the entity the view is attached to"),
         );
 
         $form['argument_mode'] = array(
           '#type' => 'radios',
-          '#title' => t("How should this display populate the view's arguments?"),
+          '#title' => $this->t("How should this display populate the view's arguments?"),
           '#options' => $options,
           '#default_value' => $default,
         );
 
         $form['token'] = array(
           '#type' => 'fieldset',
-          '#title' => t('Token replacement'),
+          '#title' => $this->t('Token replacement'),
           '#collapsible' => TRUE,
           '#states' => array(
             'visible' => array(
@@ -172,7 +173,7 @@ class Eva extends DisplayPluginBase {
           '#title' => t('Arguments'),
           '#type' => 'textfield',
           '#default_value' => $this->getOption('default_argument'),
-          '#description' => t('You may use token replacement to provide arguments based on the current entity. Separate arguments with "/".'),
+          '#description' => $this->t('You may use token replacement to provide arguments based on the current entity. Separate arguments with "/".'),
         );
         break;
 
@@ -180,7 +181,7 @@ class Eva extends DisplayPluginBase {
         $form['#title'] .= t('Show title');
         $form['show_title'] = array(
           '#type' => 'checkbox',
-          '#title' => t('Show the title of the view above the attached view.'),
+          '#title' => $this->t('Show the title of the view above the attached view.'),
           '#default_value' => $this->getOption('show_title'),
         );
         break;
@@ -188,11 +189,15 @@ class Eva extends DisplayPluginBase {
   }
 
   public function validateOptionsForm(&$form, FormStateInterface $form_state) {
-    $errors = parent::validateOptionsForm($form, $form_state);
+    if (empty($form_state->getValue('entity_type'))) {
+      $form_state->setError($form['entity_type'], $this->t('Must select an entity'));
+    }
+  }
 
-    $entity_type = $this->getOption('entity_type');
-    if (empty($entity_type)) {
-      $errors[] = t('Display @display must have an entity type selected.', array('@display' => $this->display->display_title));
+  public function validate() {
+    $errors = array();
+    if (empty($this->getOption('entity_type'))) {
+      $errors[] = $this->t('Display "@display" must be attached to an entity.', array('@display' => $this->display['display_title']));
     }
     return $errors;
   }
@@ -206,7 +211,6 @@ class Eva extends DisplayPluginBase {
         $old_entity = $this->getOption('entity_type');
         $this->setOption('entity_type', $new_entity);
 
-
         if ($new_entity != $old_entity) {
           // Each entity has its own list of bundles and view modes. If there's
           // only one on the new type, we can select it automatically. Otherwise
@@ -214,8 +218,8 @@ class Eva extends DisplayPluginBase {
           $new_entity_info = \Drupal::entityManager()->getDefinition($new_entity);
           $new_bundles_keys = \Drupal::entityManager()->getBundleInfo($new_entity);
           $new_bundles = array();
-          if (count($new_bundle_keys) == 1) {
-            $new_bundles[] = $new_bundle_keys[0];
+          if (count($new_bundles_keys) == 1) {
+            $new_bundles[] = $new_bundles_keys[0];
           }
           $this->setOption('bundles', $new_bundles);
         }
@@ -268,13 +272,13 @@ class Eva extends DisplayPluginBase {
   
   public function getPath() {
     if (isset($this->view->current_entity)) { 
-     $uri = $this->view->current_entity->uri();
+      $uri = $this->view->current_entity->url();
       if ($uri) {
         $uri['options']['absolute'] = TRUE;
         return url($uri['path'], $uri['options']);
       }
     }
-    return parent::get_path();
+    return parent::getPath();
   }
  
   function execute() {
