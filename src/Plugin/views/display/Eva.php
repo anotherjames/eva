@@ -289,7 +289,7 @@ class Eva extends DisplayPluginBase {
     // Prior to this being called, the $view should already be set to this
     // display, and arguments should be set on the view.
     if (!isset($this->view->override_path)) {
-      $this->view->override_path = $_GET['q'];
+      $this->view->override_path = current_path();
     }
 
     $element = $this->view->render();
