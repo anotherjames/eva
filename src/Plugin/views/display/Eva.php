@@ -11,6 +11,7 @@ use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Url;
 
 /**
  * The plugin that handles an EVA display in views.
@@ -289,7 +290,7 @@ class Eva extends DisplayPluginBase {
     // Prior to this being called, the $view should already be set to this
     // display, and arguments should be set on the view.
     if (!isset($this->view->override_path)) {
-      $this->view->override_path = current_path();
+      $this->view->override_path = \Drupal::service('path.current')->getPath();
     }
 
     $element = $this->view->render();
