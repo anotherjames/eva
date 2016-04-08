@@ -131,6 +131,7 @@ class Eva extends DisplayPluginBase {
         break;
 
       case 'bundles':
+        $options = array();
         foreach (\Drupal::entityManager()->getBundleInfo($entity_type) as $bundle => $info) {
           $options[$bundle] = $info['label'];
         }
