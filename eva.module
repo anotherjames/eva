@@ -19,13 +19,9 @@ function eva_entity_extra_field_info() {
 
   foreach ($views as $entity => $data) {
     foreach ($data as $view) {
-      if ($view['bundles']) {
-        $bundles = $view['bundles'];
-      }
-      else {
-        // If no bundles are set, apply to all bundles.
-        $bundles = array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo($entity));
-      }
+      // if no bundles are set, apply to all bundles
+      // per current 7.x behavior (http://cgit.drupalcode.org/eva/tree/eva.module#n25)
+      $bundles = !empty($view['bundles'])? $view['bundles'] : array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo($entity));
       foreach ($bundles as $bundle) {
         $extra[$entity][$bundle]['display'][$view['name'] . '_' . $view['display']] = array(
           'label' => (empty($view['title'])) ? $view['name'] : $view['title'], 
