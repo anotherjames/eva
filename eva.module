@@ -9,7 +9,6 @@ use Drupal\views\Views;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Utility\Token;
 
 /**
  * Implements hook_entity_extra_field_info() to add the view fields to relevant entities
@@ -20,7 +19,13 @@ function eva_entity_extra_field_info() {
 
   foreach ($views as $entity => $data) {
     foreach ($data as $view) {
-      $bundles = $view['bundles'];
+      if ($view['bundles']) {
+        $bundles = $view['bundles'];
+      }
+      else {
+        // If no bundles are set, apply to all bundles.
+        $bundles = array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo($entity));
+      }
       foreach ($bundles as $bundle) {
         $extra[$entity][$bundle]['display'][$view['name'] . '_' . $view['display']] = array(
           'label' => (empty($view['title'])) ? $view['name'] : $view['title'], 
@@ -142,7 +147,7 @@ function eva_get_arguments_from_token_string($string, $type, $object) {
   if (empty($args)) {
     return array();
   }
-  $args = Token::replace($args, array($type => $object), array('sanitize' => FALSE));
+  $args = \Drupal::token()->replace($args, array($type => $object), array('sanitize' => FALSE));
   return explode('/', $args);
 }
 
